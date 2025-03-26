@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "阅读模式 Reader Mode",
+  "version": "1.0.0",
+  "description": "为网页文章提供更好的阅读体验 | A better reading experience for web articles",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": [
+        "styles/reader.css"
+      ],
+      "js": [
+        "lib/Readability.js",
+        "scripts/content.js",
+        "scripts/ai-summary.js",
+        "scripts/image-loader.js",
+        "scripts/text-selection.js",
+        "scripts/outline-progress.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Enable Reader Mode"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

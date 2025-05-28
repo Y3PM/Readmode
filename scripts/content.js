@@ -1051,6 +1051,11 @@ class ReaderMode {
         if (window.aiSummaryInstance) {
           window.aiSummaryInstance.apiKey = apiKey;
         }
+        // 显示保存成功提示
+        this.showToast('API Key 保存成功');
+      } else {
+        // 显示错误提示
+        this.showToast('请输入有效的 API Key');
       }
     };
 
@@ -1630,6 +1635,29 @@ class ReaderMode {
       overlay.style.display = 'none';
       document.body.style.overflow = '';
     });
+  }
+
+  // 显示提示消息
+  showToast(message) {
+    // 创建一个临时的提示元素
+    const toast = document.createElement('div');
+    toast.className = 'selection-toast';
+    toast.textContent = message;
+    // 使用documentElement而不是body，以避免某些网站的CSS干扰
+    document.documentElement.appendChild(toast);
+    
+    // 显示提示
+    setTimeout(() => {
+      toast.classList.add('visible');
+    }, 10);
+    
+    // 2秒后移除提示
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => {
+        document.documentElement.removeChild(toast);
+      }, 300);
+    }, 2000);
   }
 }
 

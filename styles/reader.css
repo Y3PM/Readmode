@@ -137,6 +137,47 @@
   width: 100%;
 }
 
+/* 视频和媒体元素样式 */
+.reader-content iframe,
+.reader-content video,
+.reader-content embed,
+.reader-content object {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto;
+  min-height: 300px;
+  display: block;
+  margin: 2em auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  /* 重置可能的变换和效果 */
+  transform: none;
+  filter: none;
+  opacity: 1;
+  /* 确保媒体元素可见 */
+  visibility: visible !important;
+  /* 防止被覆盖 */
+  z-index: 1;
+}
+
+/* 针对常见视频比例的高度设置 */
+.reader-content iframe[src*="youtube"],
+.reader-content iframe[src*="youtu.be"],
+.reader-content iframe[src*="vimeo"],
+.reader-content iframe[src*="bilibili"],
+.reader-content iframe[src*="qq.com"] {
+  aspect-ratio: 16/9;
+  height: auto;
+}
+
+/* 确保视频容器也是满宽 */
+.reader-content div:has(> iframe),
+.reader-content div:has(> video),
+.reader-content div:has(> embed) {
+  width: 100%;
+  max-width: 100%;
+}
+
 /* 小图片样式：原尺寸显示 */
 .reader-content img.small-image {
   width: auto;

@@ -151,7 +151,7 @@ class ArticleOutline {
       const containerHeight = readerContainer ? readerContainer.clientHeight : window.innerHeight;
       const viewportTop = scrollTop;
       const viewportBottom = scrollTop + containerHeight;
-      const viewportMiddle = scrollTop + (containerHeight / 2); // 使用视口的中间位置作为参考点
+      const viewportThreshold = scrollTop + (containerHeight * 0.1); // 使用视口上方10%位置作为参考点
       
       // 找到当前在视口中的标题
       let currentHeadingIndex = -1;
@@ -163,17 +163,10 @@ class ArticleOutline {
         const headingTop = readerContainer ? headingRect.top + scrollContainer.scrollTop : headingRect.top + window.scrollY;
         const headingBottom = headingTop + headingRect.height;
         
-        // 标题完全在视口内
-        if (headingTop >= viewportTop && headingBottom <= viewportBottom) {
-          const distance = Math.abs(headingTop + (headingRect.height / 2) - viewportMiddle);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            currentHeadingIndex = i;
-          }
-        }
-        // 标题部分在视口内或在视口上方
-        else if (headingTop <= viewportMiddle && headingBottom >= viewportTop) {
-          const distance = Math.abs(headingTop - viewportMiddle);
+        // 标题在视口上方阈值位置或以上时选中
+        if (headingTop <= viewportThreshold) {
+          // 选择最接近阈值位置且在阈值以上的标题
+          const distance = Math.abs(headingTop - viewportThreshold);
           if (distance < closestDistance) {
             closestDistance = distance;
             currentHeadingIndex = i;
@@ -181,41 +174,16 @@ class ArticleOutline {
         }
       }
       
-      // 如果没有找到当前标题，则查找最接近视口顶部的标题
+      // 如果没有找到当前标题，则选择第一个标题
       if (currentHeadingIndex === -1 && this.headings.length > 0) {
-        let lastHeadingBeforeViewport = -1;
-        let minDistance = Infinity;
-        
-        for (let i = 0; i < this.headings.length; i++) {
-          const headingRect = this.headings[i].getBoundingClientRect();
-          
-          // 找到视口上方最近的标题
-          if (headingRect.top <= 0) {
-            const distance = Math.abs(headingRect.top);
-            if (distance < minDistance) {
-              minDistance = distance;
-              lastHeadingBeforeViewport = i;
-            }
-          }
-        }
-        
-        if (lastHeadingBeforeViewport !== -1) {
-          currentHeadingIndex = lastHeadingBeforeViewport;
-        } else {
-          // 如果所有标题都在视口下方，选择第一个标题
-          currentHeadingIndex = 0;
-        }
+        currentHeadingIndex = 0;
       }
       
       // 更新大纲高亮
       this.updateOutlineHighlight(currentHeadingIndex);
       
-      // 调试信息
-      console.log('Outline update:', {
-        scrollContainer: readerContainer ? 'reader-mode' : 'window',
-        currentHeadingIndex,
-        headingsCount: this.headings.length
-      });
+      // 移除调试信息
+      // 原console.log('Outline update:', {...})
     }, 50); // 减少节流时间，使更新更平滑
     
     // 添加滚动监听 - 优先监听阅读模式容器的滚动
@@ -457,13 +425,13 @@ class ReadingProgress {
     // 确保z-index足够高
     this.progressContainer.style.zIndex = '10002';
     
-    // 调试信息
-    console.log('Progress update:', {
-      containerHeight,
-      contentHeight,
-      scrollTop,
-      scrollPercent: scrollPercent.toFixed(2) + '%'
-    });
+    // 调试信息已隐藏
+    // console.log('Progress update:', {
+    //   containerHeight,
+    //   contentHeight,
+    //   scrollTop,
+    //   scrollPercent: scrollPercent.toFixed(2) + '%'
+    // });
   }
 }
 

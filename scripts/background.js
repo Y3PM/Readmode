@@ -7,7 +7,7 @@ function updateIcon(tabId, isActive) {
   chrome.tabs.get(tabId, (tab) => {
     if (chrome.runtime.lastError) {
       // 标签页不存在，忽略错误
-      console.log(`标签页 ${tabId} 不存在，无法更新图标`);
+      // 移除console.log
       return;
     }
     
@@ -49,8 +49,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         updateIcon(tabId, message.isActive);
       }
     });
+    return false;
   }
-  // 确保消息处理完成
+  
+  // 处理文本搜索请求
+  if (message.action === 'searchText' && message.text) {
+    // 使用新标签页打开搜索结果，而不是使用chrome.search.query
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(message.text)}`;
+    chrome.tabs.create({ url: searchUrl });
+    // 发送响应，避免出现"Message sending failed"
+    sendResponse({success: true});
+    return true; // 表示会异步发送响应
+  }
+  
   return false;
 });
 
@@ -69,23 +80,10 @@ chrome.action.onClicked.addListener((tab) => {
     chrome.tabs.get(tab.id, (tabInfo) => {
       if (chrome.runtime.lastError) {
         // 标签页不存在，忽略错误
-        console.log(`标签页 ${tab.id} 不存在，无法发送消息`);
+        // 移除console.log
         return;
       }
       chrome.tabs.sendMessage(tab.id, { action: 'toggle' });
     });
   });
-});
-
-// 处理文本搜索请求
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'searchText' && request.text) {
-    // 使用新标签页打开搜索结果，而不是使用chrome.search.query
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(request.text)}`;
-    chrome.tabs.create({ url: searchUrl });
-    // 发送响应，避免出现"Message sending failed"
-    sendResponse({success: true});
-    return true; // 表示会异步发送响应
-  }
-  return false;
 });

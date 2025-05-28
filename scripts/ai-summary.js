@@ -23,7 +23,7 @@ class AISummary {
         this.apiKey = result.deepseekApiKey;
       }
     } catch (error) {
-      console.error('加载API Key失败:', error);
+      // 移除console.error
     }
   }
 
@@ -249,7 +249,7 @@ class AISummary {
       // 显示总结结果
       this.displaySummary(summary);
     } catch (error) {
-      console.error('生成总结失败:', error);
+      // 移除console.error
       // 处理网络错误，提供更友好的错误信息
       let errorMessage = error.message;
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
@@ -388,7 +388,7 @@ class AISummary {
         return { summary: summaryText };
       }
     } catch (error) {
-      console.error('调用DeepSeek API失败:', error);
+      // 移除console.error
       
       // 处理不同类型的错误
       if (error.name === 'AbortError') {

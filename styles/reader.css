@@ -338,12 +338,25 @@
   text-wrap: auto;
 }
 
-/* 关闭按钮、大纲切换按钮和图片显隐按钮 */
-.close-button,
-.outline-toggle-button,
-.image-toggle-button {
+/* 按钮组容器 */
+.reader-button-group {
   position: fixed;
   top: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 10000;
+}
+
+.reader-button-group.left {
+  left: 16px;
+}
+
+.reader-button-group.right {
+  right: 16px;
+}
+
+/* 通用按钮样式 */
+.reader-button {
   background-color: var(--reader-panel-bg);
   color: var(--reader-text-color);
   border: none;
@@ -356,40 +369,17 @@
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
-  z-index: 10000;
   padding: 0;
   font-size: 28px;
-  transition: transform 0.3s ease;
 }
 
-.close-button {
-  right: 32px;
-}
-
-.outline-toggle-button {
-  left: 16px;
-}
-
-.image-toggle-button {
-  right: 128px;
-}
-
-.close-button svg {
+.reader-button svg {
   width: 20px;
+  height: 20px;
   transition: transform 0.3s ease;
 }
 
-.image-toggle-button svg {
-  width: 20px;
-  transition: transform 0.3s ease;
-}
-.outline-toggle-button svg {
-  width: 20px;
-  transition: transform 0.3s ease;
-}
-
-.image-toggle-button svg:hover, .outline-toggle-button svg:hover,
-.close-button svg:hover {
+.reader-button:hover svg {
   transform: scale(1.2);
 }
 
@@ -907,17 +897,20 @@
 .text-selection-bubble {
   position: fixed !important;
   display: flex !important;
-  align-items: center;
+  align-items: center !important;
+  justify-content: center !important;
   background-color: var(--reader-panel-bg, #fff) !important;
   border-radius: 8px !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
   padding: 6px !important;
-  gap: 8px !important;
+  gap: 4px !important;
   z-index: 2147483647 !important; /* 使用最高的z-index值 */
   opacity: 0 !important;
   transform: translateY(10px) !important;
   transition: opacity 0.2s ease, transform 0.2s ease !important;
   pointer-events: none !important;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
 }
 
 .text-selection-bubble.visible {
@@ -934,11 +927,18 @@
   background-color: transparent !important;
   color: var(--reader-text-color, #333) !important;
   cursor: pointer !important;
-  display: flex;
+  display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
+  margin: 0 !important;
   transition: background-color 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+/* 确保打开链接按钮在隐藏时不会被CSS覆盖 */
+.bubble-button.open-link-button[style*="display: none"] {
+  display: none !important;
 }
 
 .bubble-button:hover {
@@ -950,9 +950,11 @@
 }
 
 .bubble-button svg {
-  width: 18px;
-  height: 18px;
-  transition: transform 0.3s ease;
+  width: 18px !important;
+  height: 18px !important;
+  transition: transform 0.3s ease !important;
+  display: block !important;
+  margin: 0 auto !important;
 }
 
 .bubble-button:hover svg {
@@ -1046,36 +1048,7 @@
   color: var(--reader-text-color);
 }
 
-/* 设置按钮样式 */
-.settings-button {
-  position: fixed;
-  top: 16px;
-  right: 80px;
-  background-color: var(--reader-panel-bg, #ffffff);
-  color: var(--reader-text-color);
-  border: none;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-  z-index: 10000;
-  padding: 0;
-}
 
-.settings-button svg {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease;
-}
-
-.settings-button:hover svg {
-  transform: scale(1.2);
-}
 
 /* 配置面板样式 */
 .settings-panel {
@@ -1132,36 +1105,23 @@
   border-radius: 3px;
 }
 
-/* AI总结按钮样式 */
-.ai-summary-button {
-  position: fixed;
-  top: 16px;
-  right: 176px;
-  background-color: var(--reader-panel-bg, #ffffff);
-  color: var(--reader-text-color);
-  border: none;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.2s ease;
-  z-index: 10000;
-  padding: 0;
+/* 加载状态样式 */
+.reader-button.loading {
+  pointer-events: none;
 }
 
-.ai-summary-button svg {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease;
+.reader-button .loading-icon {
+  animation: spin 1s linear infinite;
 }
 
-.ai-summary-button:hover svg {
-  transform: scale(1.2);
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
+
+
+
+/* AI总结按钮特殊样式保持不变，但移除定位相关样式 */
 
 .ai-regenerate-button svg, .ai-panel-close svg {
   width: 16px;
@@ -1418,6 +1378,143 @@
   border-left: 3px solid #ff5252;
   color: #ff5252;
   border-radius: 4px;
+}
+
+/* 阅读模式错误提示样式 */
+.reader-error-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10002;
+  max-width: 480px;
+  width: 90%;
+  background: var(--reader-panel-bg, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--reader-border-color);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+.reader-error-message .error-content {
+  padding: 24px;
+  position: relative;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.reader-error-message .error-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #ff6b6b;
+}
+
+.reader-error-message .error-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.reader-error-message .error-text {
+  flex: 1;
+  color: var(--reader-text-color);
+}
+
+.reader-error-message .error-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--reader-heading-color);
+}
+
+.reader-error-message .error-description {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  color: var(--reader-text-color);
+}
+
+.reader-error-message .error-suggestions {
+  font-size: 13px;
+  color: var(--reader-quote-color);
+}
+
+.reader-error-message .error-suggestions p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.reader-error-message .error-suggestions ul {
+  margin: 0;
+  padding-left: 16px;
+  list-style-type: disc;
+}
+
+.reader-error-message .error-suggestions li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.reader-error-message .error-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--reader-quote-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.reader-error-message .error-close-btn:hover {
+  background-color: var(--reader-border-color);
+  color: var(--reader-text-color);
+}
+
+.reader-error-message .error-close-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 暗色模式下的错误提示样式 */
+.reader-mode[data-theme="dark"] .reader-error-message {
+  background: var(--reader-dark-bg, #2a2a2a);
+  border-color: var(--reader-dark-border, #444);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-icon {
+  color: #ff8a8a;
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-title {
+  color: var(--reader-dark-heading, #ffffff);
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-description {
+  color: var(--reader-dark-text, #e4e4e4);
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-suggestions {
+  color: var(--reader-dark-quote, #b4b4b4);
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-close-btn {
+  color: var(--reader-dark-quote, #b4b4b4);
+}
+
+.reader-mode[data-theme="dark"] .reader-error-message .error-close-btn:hover {
+  background-color: var(--reader-dark-border, #444);
+  color: var(--reader-dark-text, #e4e4e4);
 }
 
 /* API Key设置样式 */

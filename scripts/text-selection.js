@@ -239,7 +239,7 @@ class TextSelectionBubble {
         this.hideBubble();
       })
       .catch(err => {
-        console.error('复制失败:', err);
+        // 复制失败，显示错误提示
         this.showToast('复制失败');
       });
   }
@@ -249,7 +249,7 @@ class TextSelectionBubble {
     
     // 在发送消息前检查runtime是否可用
     if (!chrome.runtime) {
-      console.error('Chrome runtime is not available');
+      // Chrome运行时不可用
       return;
     }
 
@@ -260,12 +260,12 @@ class TextSelectionBubble {
         text: this.selectedText
       }, (response) => {
         if (chrome.runtime.lastError) {
-          console.error('Message sending failed:', chrome.runtime.lastError.message);
+          // 发送消息失败
           return;
         }
       });
     } catch (error) {
-      console.error('Failed to send message:', error);
+      // 搜索操作失败
     }
     
     // 隐藏气泡
@@ -294,32 +294,72 @@ class TextSelectionBubble {
     }, 2000);
   }
 
-  // 判断文本是否为链接
+  // 判断选中的文本是否在链接元素内或者本身是URL
   isTextLink(text) {
-    const linkRegex = /^\w+[^\s]+(\.[^\s]+){1,}$/;
-    return linkRegex.test(text);
+    // 首先检查文本本身是否为URL
+    const urlRegex = /^https?:\/\/[\w\-]+(\.[\w\-]+)+([\w\-.,@?^=%&:\/~+#]*[\w\-@?^=%&\/~+#])?$/;
+    if (urlRegex.test(text)) {
+      return true;
+    }
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      return false;
+    }
+    
+    try {
+      const range = selection.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      
+      // 如果容器是文本节点，获取其父元素
+      const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+      
+      // 检查元素本身或其祖先元素是否为链接，且链接以http或https开头
+      const linkElement = element.closest('a');
+      return linkElement && linkElement.href && 
+             (linkElement.href.startsWith('http://') || linkElement.href.startsWith('https://'));
+    } catch (error) {
+      // 获取链接元素失败
+      return false;
+    }
   }
 
   // 处理打开链接
   handleOpenLink() {
     if (!this.selectedText || !this.isLink) return;
     
+    // 检查文本本身是否为URL
+    const urlRegex = /^https?:\/\/[\w\-]+(\.[\w\-]+)+([\w\-.,@?^=%&:\/~+#]*[\w\-@?^=%&\/~+#])?$/;
+    if (urlRegex.test(this.selectedText)) {
+      // 直接打开文本中的URL
+      window.open(this.selectedText, '_blank');
+      this.hideBubble();
+      return;
+    }
+    
     try {
-      // 处理URL，确保是完整的URL
-      let url = this.selectedText;
-      
-      // 如果不是以http://或https://开头，则添加https://
-      if (!/^https?:\/\//i.test(url)) {
-        url = 'https://' + url;
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        this.showToast('无法获取链接');
+        return;
       }
       
-      // 在新窗口中打开链接
-      window.open(url, '_blank');
+      const range = selection.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container;
+      const linkElement = element.closest('a');
       
-      // 隐藏气泡
-      this.hideBubble();
+      if (linkElement && linkElement.href) {
+        // 在新窗口中打开链接
+        window.open(linkElement.href, '_blank');
+        
+        // 隐藏气泡
+        this.hideBubble();
+      } else {
+        this.showToast('无法获取链接地址');
+      }
     } catch (error) {
-      console.error('打开链接失败:', error);
+      // 打开链接操作失败
       this.showToast('打开链接失败');
     }
   }

@@ -343,7 +343,7 @@
   position: fixed;
   top: 16px;
   display: flex;
-  gap: 8px;
+  gap: 16px;
   z-index: 10000;
 }
 
@@ -352,7 +352,7 @@
 }
 
 .reader-button-group.right {
-  right: 16px;
+  right: 32px;
 }
 
 /* 通用按钮样式 */

@@ -8,6 +8,8 @@ class TextSelectionBubble {
     this.isVisible = false;
     this.selectedText = '';
     this.isLink = false; // 添加标记，表示选中的文本是否为链接
+    this.lastScrollY = 0; // 记录上次滚动位置
+    this.scrollThreshold = 60; // 滚动隐藏阈值（像素），设置在40-100范围内
     this.init();
   }
 
@@ -33,6 +35,15 @@ class TextSelectionBubble {
         this.hideBubble();
       }
     }, true);
+    
+    // 添加滚动事件监听，页面滚动时自动隐藏气泡
+    // 优先监听阅读模式容器的滚动事件
+    const readerContainer = document.querySelector('.reader-mode');
+    if (readerContainer) {
+      readerContainer.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
+    } else {
+      window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
+    }
   }
 
   createBubble() {
@@ -119,29 +130,12 @@ class TextSelectionBubble {
         }
       }
       
-      try {
-        // 获取选中文本的位置
-        if (selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          
-          // 确保获取到有效的位置信息
-          if (rect && rect.width > 0 && rect.height > 0) {
-            // 显示气泡
-            this.showBubble(rect);
-          } else {
-            // 如果无法获取有效的位置信息，尝试使用鼠标位置
-            this.showBubbleAtMousePosition(e);
-          }
-        } else {
-          // 如果无法获取范围，尝试使用鼠标位置
-          this.showBubbleAtMousePosition(e);
-        }
-      } catch (error) {
-        console.error('获取选中文本位置失败:', error);
-        // 出错时尝试使用鼠标位置
-        this.showBubbleAtMousePosition(e);
-      }
+      // 更新滚动位置记录
+      const readerContainer = document.querySelector('.reader-mode');
+      this.lastScrollY = readerContainer ? readerContainer.scrollTop : window.scrollY;
+      
+      // 始终使用鼠标位置显示气泡
+      this.showBubbleAtMousePosition(e);
     }, 10); // 短暂延迟，确保选择已完成
   }
 
@@ -184,39 +178,19 @@ class TextSelectionBubble {
     this.bubble.offsetHeight;
   }
 
-  showBubble(rect) {
-    if (!this.bubble) return;
+  // 处理页面滚动事件
+  handleScroll() {
+    if (!this.isVisible) return;
     
-    // 计算气泡位置
-    const bubbleHeight = 40; // 气泡高度
-    const bubbleWidth = 90; // 气泡宽度
-    const spacing = 10; // 与选中文本的间距
+    // 获取当前滚动位置 - 优先使用阅读模式容器的滚动位置
+    const readerContainer = document.querySelector('.reader-mode');
+    const currentScrollY = readerContainer ? readerContainer.scrollTop : window.scrollY;
+    const scrollDiff = Math.abs(currentScrollY - this.lastScrollY);
     
-    // 气泡位置在选中文本的上方中间位置
-    let left = rect.left + (rect.width / 2) - (bubbleWidth / 2);
-    let top = rect.top - bubbleHeight - spacing;
-    
-    // 确保气泡不超出视口
-    if (left < 10) left = 10;
-    if (left + bubbleWidth > window.innerWidth - 10) {
-      left = window.innerWidth - bubbleWidth - 10;
+    // 如果滚动距离超过阈值（40-100像素），隐藏气泡
+    if (scrollDiff > this.scrollThreshold) {
+      this.hideBubble();
     }
-    
-    // 如果上方空间不足，则显示在下方
-    if (top < 10) {
-      top = rect.bottom + spacing;
-    }
-    
-    // 设置气泡位置
-    this.bubble.style.left = `${left}px`;
-    this.bubble.style.top = `${top}px`;
-    
-    // 显示气泡
-    this.bubble.classList.add('visible');
-    this.isVisible = true;
-    
-    // 强制重绘，解决某些网站上的显示问题
-    this.bubble.offsetHeight;
   }
 
   hideBubble() {
